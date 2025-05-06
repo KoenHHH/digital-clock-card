@@ -2,5 +2,5 @@
   "name": "Digital Clock Card",
   "render_readme": true,
   "content_in_root": false,
-  "filename": "dist/digital-clock-card.js"
+  "filename": "digital-clock-card.js"
 }
