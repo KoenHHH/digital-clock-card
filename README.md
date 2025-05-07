@@ -88,7 +88,7 @@ use_card: true
 | `entity` | string | `sensor.time` | Entity that provides the time |
 | `name` | string | | Optional name for the card |
 | `use_24h_format` | boolean | `true` | Use 24-hour format (`true`) or 12-hour format (`false`) |
-| `use_card` | boolean | `true` | Use Home Assistant card styling |
+| `use_card` | boolean | `true` | Use Home Assistant card background (no card_mod required to disable ha-card background) |
 | `background_color` | string | `none` | Background color for the clock panel |
 | `digit_color` | string | `white` | Color for active segments |
 | `dimmed_color` | string | `none` | Color for inactive segments |
@@ -133,9 +133,9 @@ type: custom:digital-clock-card
 entity: sensor.time
 use_card: true
 use_24h_format: false
-background_color: "#000033"
-digit_color: "#00ccff"
-dimmed_color: "#002244"
+background_color: "#000000"
+digit_color: "#1a89f5"
+dimmed_color: "#00001F"
 width_svg: 50%
 height_svg: 120
 justify_content: center
