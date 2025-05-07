@@ -63,6 +63,7 @@ class DigitalClockCard extends HTMLElement {
       dimmed_color: "none",
       width_svg: "50%",
       height_svg: 120,
+      rect_x: 0,
       justify_content: "center",
       margin_div: 0,
       use_card: true
