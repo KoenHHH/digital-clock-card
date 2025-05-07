@@ -18,9 +18,11 @@ class DigitalClockCard extends HTMLElement {
       use_24h_format: config.use_24h_format !== undefined ? config.use_24h_format : true,
       
       // Layout configuration
-      width_svg: config.width_svg || '100px',
-      height_svg: config.height_svg || 'auto',
+      width_svg: config.width_svg || '100%',
+      height_svg: config.height_svg || '120',
       padding_div: config.padding_div || '0',
+      align_items: config.align_items || 'center',
+      justify_content: config.justify_content || 'center',
       
       // Color configuration
       background_color: config.background_color || 'transparent',
@@ -92,6 +94,8 @@ class DigitalClockCard extends HTMLElement {
     let widthSVG = this.config.width_svg;
     let heightSVG = this.config.height_svg;
     let paddingDIV = this.config.padding_div;
+    let alignItems = this.config.align_items;
+    let justifyContent = this.config.justify_content;
     
     // Color configuration
     let backgroundColor = this.config.background_color;   
@@ -261,7 +265,7 @@ class DigitalClockCard extends HTMLElement {
     
     // Generate and return the SVG clock visualization
     return `
-      <div style="align-items: center; padding: ${paddingDIV};">
+      <div style="display:flex; align-items: ${alignItems}; justify-content: ${justifyContent}; padding: ${paddingDIV};">
         <svg viewBox="0 0 300 120" width="${widthSVG}" height="${heightSVG}" xmlns="http://www.w3.org/2000/svg">
           <!-- Background rectangle -->
           <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="${backgroundColor}" rx="5" ry="5" />
@@ -300,6 +304,7 @@ customElements.define('digital-clock-card', DigitalClockCard);
 class DigitalClockCardEditor extends HTMLElement {
   setConfig(config) {
     this.config = config;
+    this._hass = document.querySelector("home-assistant").hass;
   }
 
   get _entity() {
@@ -331,11 +336,11 @@ class DigitalClockCardEditor extends HTMLElement {
   }
   
   get _width_svg() {
-    return this.config.width_svg || '100px';
+    return this.config.width_svg || '100%';
   }
   
   get _height_svg() {
-    return this.config.height_svg || 'auto';
+    return this.config.height_svg || '120';
   }
   
   get _segment_thickness() {
@@ -352,6 +357,42 @@ class DigitalClockCardEditor extends HTMLElement {
   
   get _digit_spacing() {
     return this.config.digit_spacing || 10;
+  }
+  
+  get _align_items() {
+    return this.config.align_items || 'center';
+  }
+  
+  get _justify_content() {
+    return this.config.justify_content || 'center';
+  }
+  
+  get _clock_center_x() {
+    return this.config.clock_center_x || 150;
+  }
+  
+  get _clock_center_y() {
+    return this.config.clock_center_y || 85;
+  }
+  
+  get _rect_x() {
+    return this.config.rect_x || 40;
+  }
+  
+  get _rect_y() {
+    return this.config.rect_y || 20;
+  }
+  
+  get _rect_width() {
+    return this.config.rect_width || 220;
+  }
+  
+  get _rect_height() {
+    return this.config.rect_height || 100;
+  }
+  
+  get _padding_div() {
+    return this.config.padding_div || '0';
   }
 
   render() {
@@ -394,7 +435,7 @@ class DigitalClockCardEditor extends HTMLElement {
             },
             {
               name: "height_svg",
-              selector: { text: {} }
+              selector: { number: { min: 50, max: 500, step: 1 } }
             },
             {
               name: "segment_thickness",
@@ -411,6 +452,58 @@ class DigitalClockCardEditor extends HTMLElement {
             {
               name: "digit_spacing",
               selector: { number: { min: 0, max: 50, step: 1 } }
+            },
+            {
+              name: "align_items",
+              selector: { select: {
+                options: [
+                  { value: "flex-start", label: "Start" },
+                  { value: "center", label: "Center" },
+                  { value: "flex-end", label: "End" },
+                  { value: "stretch", label: "Stretch" }
+                ]
+              }}
+            },
+            {
+              name: "justify_content",
+              selector: { select: {
+                options: [
+                  { value: "flex-start", label: "Start" },
+                  { value: "center", label: "Center" },
+                  { value: "flex-end", label: "End" },
+                  { value: "space-between", label: "Space Between" },
+                  { value: "space-around", label: "Space Around" },
+                  { value: "space-evenly", label: "Space Evenly" }
+                ]
+              }}
+            },
+            {
+              name: "padding_div",
+              selector: { text: {} }
+            },
+            {
+              name: "clock_center_x",
+              selector: { number: { min: 0, max: 300, step: 1 } }
+            },
+            {
+              name: "clock_center_y", 
+              selector: { number: { min: 0, max: 300, step: 1 } }
+            },
+            {
+              name: "rect_x",
+              selector: { number: { min: 0, max: 300, step: 1 } }
+            },
+            {
+              name: "rect_y",
+              selector: { number: { min: 0, max: 300, step: 1 } }
+            },
+            {
+              name: "rect_width",
+              selector: { number: { min: 0, max: 300, step: 1 } }
+            },
+            {
+              name: "rect_height",
+              selector: { number: { min: 0, max: 300, step: 1 } }
             }
           ]}
           .data=${this.config}
