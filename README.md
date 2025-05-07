@@ -126,12 +126,12 @@ justify_content: center
 segment_thickness: 6
 ```
 
-### Modern Blue Display with Card
+### Modern Blue Display on Transparent Background
 
 ```yaml
 type: custom:digital-clock-card
 entity: sensor.time
-use_card: true
+use_card: false
 use_24h_format: false
 background_color: "#000000"
 digit_color: "#1a89f5"
@@ -143,7 +143,7 @@ margin_div: 0
 segment_thickness: 10
 ```
 
-### Minimalist White on Transparent
+### Minimalist White on Transparent background
 
 ```yaml
 type: custom:digital-clock-card
