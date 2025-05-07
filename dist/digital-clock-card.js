@@ -14,6 +14,9 @@ class DigitalClockCard extends HTMLElement {
     this.card = card;
     this.content = content;
     
+    // Initialize config flag
+    this.configInitialized = false;
+    
     // Apply base styles
     this._applyStyles();
   }
@@ -87,6 +90,14 @@ class DigitalClockCard extends HTMLElement {
         this.config.dimmed_color = 'rgba(255,255,255,0.3)';
       }
     }
+    
+    // Mark config as initialized
+    this.configInitialized = true;
+    
+    // Update rendering if we already have hass data
+    if (this._hass) {
+      this.content.innerHTML = this.renderClock(this._hass);
+    }
   }
 
   getCardSize() {
@@ -112,6 +123,11 @@ class DigitalClockCard extends HTMLElement {
   }
 
   renderClock(hass) {
+    // Check if config is initialized
+    if (!this.configInitialized || !this.config) {
+      return `<div>Card not configured. Please add configuration.</div>`;
+    }
+    
     const entity = hass.states[this.config.entity];
     if (!entity) {
       return `<div>Entity ${this.config.entity} not found.</div>`;
@@ -275,7 +291,13 @@ class DigitalClockCard extends HTMLElement {
     if (!this.content) return;
     
     this._hass = hass;
-    this.content.innerHTML = this.renderClock(hass);
+    
+    // Only render if config is initialized
+    if (this.configInitialized) {
+      this.content.innerHTML = this.renderClock(hass);
+    } else {
+      this.content.innerHTML = `<div>Card not configured. Please add configuration.</div>`;
+    }
   }
 }
 
@@ -288,25 +310,45 @@ class DigitalClockCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
+    if (!config) {
+      config = {};
+    }
     this._config = { ...config };
     this.loadCardHelpers();
   }
 
   async loadCardHelpers() {
-    this._helpers = await window.loadCardHelpers();
-    this._createCardElement();
+    try {
+      this._helpers = await window.loadCardHelpers();
+      this._createCardElement();
+    } catch (error) {
+      console.error("Failed to load card helpers:", error);
+      this._showErrorInEditor("Failed to load card helpers");
+    }
+  }
+
+  _showErrorInEditor(message) {
+    this.innerHTML = `<div style="color: red; padding: 8px;">${message}</div>`;
   }
 
   async _createCardElement() {
-    const helpers = await this._helpers;
-    
-    this._card = await helpers.createCardElement({
-      type: 'entities',
-      entities: []
-    });
-    
-    this._card.hass = this._hass;
-    this._createForm();
+    try {
+      const helpers = await this._helpers;
+      
+      this._card = await helpers.createCardElement({
+        type: 'entities',
+        entities: []
+      });
+      
+      if (this._hass) {
+        this._card.hass = this._hass;
+      }
+      
+      this._createForm();
+    } catch (error) {
+      console.error("Failed to create card element:", error);
+      this._showErrorInEditor("Failed to create card element");
+    }
   }
 
   _createForm() {
@@ -381,10 +423,33 @@ class DigitalClockCardEditor extends HTMLElement {
     const bgColorInput = document.createElement('input');
     bgColorInput.type = 'color';
     bgColorInput.value = this._config.background_color || '#000000';
-    bgColorInput.addEventListener('change', (e) => {
-      this._updateConfig({ background_color: e.target.value });
+    // Add transparency option
+    const bgTransparentCheck = document.createElement('input');
+    bgTransparentCheck.type = 'checkbox';
+    bgTransparentCheck.checked = this._config.background_color === 'transparent';
+    bgTransparentCheck.style.marginLeft = '10px';
+    bgTransparentCheck.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        bgColorInput.disabled = true;
+        this._updateConfig({ background_color: 'transparent' });
+      } else {
+        bgColorInput.disabled = false;
+        this._updateConfig({ background_color: bgColorInput.value });
+      }
     });
-    form.appendChild(createFormRow('Background Color:', bgColorInput));
+    bgColorInput.addEventListener('change', (e) => {
+      if (!bgTransparentCheck.checked) {
+        this._updateConfig({ background_color: e.target.value });
+      }
+    });
+    const bgRow = createFormRow('Background Color:', bgColorInput);
+    const bgTransLabel = document.createElement('label');
+    bgTransLabel.innerText = 'Transparent';
+    bgTransLabel.style.marginLeft = '10px';
+    bgTransLabel.style.flex = '0';
+    bgRow.appendChild(bgTransLabel);
+    bgRow.appendChild(bgTransparentCheck);
+    form.appendChild(bgRow);
     
     // Digit color
     const digitColorInput = document.createElement('input');
@@ -399,10 +464,33 @@ class DigitalClockCardEditor extends HTMLElement {
     const dimmedColorInput = document.createElement('input');
     dimmedColorInput.type = 'color';
     dimmedColorInput.value = this._config.dimmed_color || '#FFFFFF4D';
-    dimmedColorInput.addEventListener('change', (e) => {
-      this._updateConfig({ dimmed_color: e.target.value });
+    // Add "none" option for dimmed color
+    const dimmedNoneCheck = document.createElement('input');
+    dimmedNoneCheck.type = 'checkbox';
+    dimmedNoneCheck.checked = this._config.dimmed_color === 'none';
+    dimmedNoneCheck.style.marginLeft = '10px';
+    dimmedNoneCheck.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        dimmedColorInput.disabled = true;
+        this._updateConfig({ dimmed_color: 'none' });
+      } else {
+        dimmedColorInput.disabled = false;
+        this._updateConfig({ dimmed_color: dimmedColorInput.value });
+      }
     });
-    form.appendChild(createFormRow('Dimmed Color:', dimmedColorInput));
+    dimmedColorInput.addEventListener('change', (e) => {
+      if (!dimmedNoneCheck.checked) {
+        this._updateConfig({ dimmed_color: e.target.value });
+      }
+    });
+    const dimmedRow = createFormRow('Dimmed Color:', dimmedColorInput);
+    const dimmedNoneLabel = document.createElement('label');
+    dimmedNoneLabel.innerText = 'Auto (30% opacity)';
+    dimmedNoneLabel.style.marginLeft = '10px';
+    dimmedNoneLabel.style.flex = '0';
+    dimmedRow.appendChild(dimmedNoneLabel);
+    dimmedRow.appendChild(dimmedNoneCheck);
+    form.appendChild(dimmedRow);
     
     // Justify content
     const justifyContentSelect = document.createElement('select');
@@ -449,6 +537,32 @@ class DigitalClockCardEditor extends HTMLElement {
     });
     form.appendChild(createFormRow('SVG Height:', heightInput));
     
+    // Advanced options section
+    const advancedButton = document.createElement('button');
+    advancedButton.type = 'button';
+    advancedButton.innerText = 'Show Advanced Options';
+    advancedButton.style.width = '100%';
+    advancedButton.style.padding = '8px';
+    advancedButton.style.margin = '10px 0';
+    
+    const advancedSection = document.createElement('div');
+    advancedSection.style.display = 'none';
+    
+    advancedButton.addEventListener('click', () => {
+      if (advancedSection.style.display === 'none') {
+        advancedSection.style.display = 'block';
+        advancedButton.innerText = 'Hide Advanced Options';
+      } else {
+        advancedSection.style.display = 'none';
+        advancedButton.innerText = 'Show Advanced Options';
+      }
+    });
+    
+    form.appendChild(advancedButton);
+    form.appendChild(advancedSection);
+    
+    // Advanced options
+    
     // Segment thickness
     const thicknessInput = document.createElement('input');
     thicknessInput.type = 'number';
@@ -456,7 +570,7 @@ class DigitalClockCardEditor extends HTMLElement {
     thicknessInput.addEventListener('change', (e) => {
       this._updateConfig({ segment_thickness: e.target.value });
     });
-    form.appendChild(createFormRow('Segment Thickness:', thicknessInput));
+    advancedSection.appendChild(createFormRow('Segment Thickness:', thicknessInput));
     
     // Digit width
     const digitWidthInput = document.createElement('input');
@@ -465,7 +579,7 @@ class DigitalClockCardEditor extends HTMLElement {
     digitWidthInput.addEventListener('change', (e) => {
       this._updateConfig({ digit_width: e.target.value });
     });
-    form.appendChild(createFormRow('Digit Width:', digitWidthInput));
+    advancedSection.appendChild(createFormRow('Digit Width:', digitWidthInput));
     
     // Digit height
     const digitHeightInput = document.createElement('input');
@@ -474,7 +588,7 @@ class DigitalClockCardEditor extends HTMLElement {
     digitHeightInput.addEventListener('change', (e) => {
       this._updateConfig({ digit_height: e.target.value });
     });
-    form.appendChild(createFormRow('Digit Height:', digitHeightInput));
+    advancedSection.appendChild(createFormRow('Digit Height:', digitHeightInput));
     
     // Digit spacing
     const spacingInput = document.createElement('input');
@@ -483,7 +597,7 @@ class DigitalClockCardEditor extends HTMLElement {
     spacingInput.addEventListener('change', (e) => {
       this._updateConfig({ digit_spacing: e.target.value });
     });
-    form.appendChild(createFormRow('Digit Spacing:', spacingInput));
+    advancedSection.appendChild(createFormRow('Digit Spacing:', spacingInput));
     
     // Margin
     const marginInput = document.createElement('input');
@@ -491,13 +605,26 @@ class DigitalClockCardEditor extends HTMLElement {
     marginInput.addEventListener('change', (e) => {
       this._updateConfig({ margin_div: e.target.value });
     });
-    form.appendChild(createFormRow('Margin:', marginInput));
+    advancedSection.appendChild(createFormRow('Margin:', marginInput));
+    
+    // Update initial state of color inputs
+    if (this._config.background_color === 'transparent') {
+      bgColorInput.disabled = true;
+      bgTransparentCheck.checked = true;
+    }
+    
+    if (this._config.dimmed_color === 'none') {
+      dimmedColorInput.disabled = true;
+      dimmedNoneCheck.checked = true;
+    }
     
     this.appendChild(form);
   }
 
   _updateConfig(configUpdate) {
-    if (!this._config) return;
+    if (!this._config) {
+      this._config = {};
+    }
     
     // Update the configuration
     this._config = { ...this._config, ...configUpdate };
