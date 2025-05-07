@@ -70,6 +70,7 @@ A customizable 7-segment digital clock display card for Home Assistant.
 ```yaml
 type: custom:digital-clock-card
 entity: sensor.time
+use_card: true
 use_24h_format: true
 background_color: none
 digit_color: white
@@ -78,7 +79,7 @@ width_svg: 50%
 height_svg: 120
 justify_content: center
 margin_div: 0
-use_card: true
+rext_x: 0
 ```
 
 ## Configuration Options
