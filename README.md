@@ -115,9 +115,14 @@ use_card: true
 ```yaml
 type: custom:digital-clock-card
 entity: sensor.time
+use_card: true
+use_24h_format: false
 background_color: "#000000"
 digit_color: "#ff0000"
 dimmed_color: "#330000"
+width_svg: 50%
+height_svg: 120
+justify_content: center
 segment_thickness: 6
 ```
 
@@ -127,11 +132,15 @@ segment_thickness: 6
 type: custom:digital-clock-card
 entity: sensor.time
 use_card: true
+use_24h_format: false
 background_color: "#000033"
 digit_color: "#00ccff"
 dimmed_color: "#002244"
+width_svg: 50%
+height_svg: 120
+justify_content: center
+margin_div: 0
 segment_thickness: 10
-digit_width: 50
 ```
 
 ### Minimalist White on Transparent
@@ -140,9 +149,14 @@ digit_width: 50
 type: custom:digital-clock-card
 entity: sensor.time
 use_card: false
+use_24h_format: false
 background_color: none
 digit_color: white
-dimmed_color: rgba(255,255,255,0.2)
+dimmed_color: rgba(255,255,255,0.1)
+width_svg: 50%
+height_svg: 120
+justify_content: center
+margin_div: 0
 segment_thickness: 4
 ```
 
