@@ -1,7 +1,15 @@
 # Digital Clock Card for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Home Assistant](https://img.shields.io/badge/home%20assistant-%2341BDF5.svg?style=for-the-badge&logo=home-assistant&logoColor=white)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/hacs/integration)
+![GitHub Release](https://img.shields.io/github/v/release/KoenHHH/digital-clock-card?style=for-the-badge&logo=github)
+![GitHub Pre-Release](https://img.shields.io/github/v/release/KoenHHH/digital-clock-card?include_prereleases&style=for-the-badge&logo=github&label=PRERELEASE)
+![GitHub Tag](https://img.shields.io/github/v/tag/KoenHHH/digital-clock-card?style=for-the-badge&color=yellow)
+![GitHub branch status](https://img.shields.io/github/checks-status/KoenHHH/digital-clock-card/main?style=for-the-badge)
+![stars](https://img.shields.io/github/stars/KoenHHH/digital-clock-card.svg?style=for-the-badge)
+![home](https://img.shields.io/github/last-commit/KoenHHH/digital-clock-card.svg?style=for-the-badge)
+![commits](https://img.shields.io/github/commit-activity/y/KoenHHH/digital-clock-card?style=for-the-badge)
+![license](https://img.shields.io/github/license/KoenHHH/digital-clock-card?style=for-the-badge&logo=opensourceinitiative&logoColor=white&color=0080ff)
 
 A customizable 7-segment digital clock display card for Home Assistant.
 
@@ -21,6 +29,8 @@ A customizable 7-segment digital clock display card for Home Assistant.
 ## Installation
 
 ### HACS (Recommended)
+
+[![HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=KoenHHH&repository=digital-clock-card&category=plugin)
 
 1. Make sure [HACS](https://hacs.xyz/) is installed in your Home Assistant instance
 2. Add this repository as a custom repository in HACS:
