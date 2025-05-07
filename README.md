@@ -135,7 +135,7 @@ use_card: false
 use_24h_format: false
 background_color: "#000000"
 digit_color: "#1a89f5"
-dimmed_color: "#00001F"
+dimmed_color: none
 width_svg: 50%
 height_svg: 120
 justify_content: center
