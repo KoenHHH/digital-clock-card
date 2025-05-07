@@ -20,7 +20,7 @@ class DigitalClockCard extends HTMLElement {
       // Layout configuration
       width_svg: config.width_svg || '100%',
       height_svg: config.height_svg || '120',
-      padding_div: config.padding_div || '0',
+      margin_div: config.margin_div || '0',
       align_items: config.align_items || 'center',
       justify_content: config.justify_content || 'center',
       
@@ -42,7 +42,7 @@ class DigitalClockCard extends HTMLElement {
       
       // Background rectangle dimensions
       rect_x: config.rect_x || 40,
-      rect_y: config.rect_y || 20,
+      rect_y: config.rect_y || 0,
       rect_width: config.rect_width || 220,
       rect_height: config.rect_height || 100,
     };
@@ -58,7 +58,11 @@ class DigitalClockCard extends HTMLElement {
       use_24h_format: true,
       background_color: "transparent",
       digit_color: "white",
-      dimmed_color: "none"
+      dimmed_color: "none",
+      width_svg: "100%",
+      height_svg: "120",
+      justify_content: "center",
+      margin: "0"
     };
   }
 
@@ -93,7 +97,7 @@ class DigitalClockCard extends HTMLElement {
     // Layout configuration
     let widthSVG = this.config.width_svg;
     let heightSVG = this.config.height_svg;
-    let paddingDIV = this.config.padding_div;
+    let marginDIV = this.config.margin_div;
     let alignItems = this.config.align_items;
     let justifyContent = this.config.justify_content;
     
@@ -265,7 +269,7 @@ class DigitalClockCard extends HTMLElement {
     
     // Generate and return the SVG clock visualization
     return `
-      <div style="display:flex; align-items: ${alignItems}; justify-content: ${justifyContent}; padding: ${paddingDIV};">
+      <div style="display:flex; align-items: ${alignItems}; justify-content: ${justifyContent}; margin: ${marginDIV};">
         <svg viewBox="0 0 300 120" width="${widthSVG}" height="${heightSVG}" xmlns="http://www.w3.org/2000/svg">
           <!-- Background rectangle -->
           <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="${backgroundColor}" rx="5" ry="5" />
@@ -391,8 +395,8 @@ class DigitalClockCardEditor extends HTMLElement {
     return this.config.rect_height || 100;
   }
   
-  get _padding_div() {
-    return this.config.padding_div || '0';
+  get _margin_div() {
+    return this.config.margin_div || '0';
   }
 
   render() {
@@ -478,7 +482,7 @@ class DigitalClockCardEditor extends HTMLElement {
               }}
             },
             {
-              name: "padding_div",
+              name: "margin_div",
               selector: { text: {} }
             },
             {
