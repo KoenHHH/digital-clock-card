@@ -5,7 +5,7 @@ class DigitalClockCard extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.entity && !config.entity.startsWith('sensor.')) {
+    if (!config.entity && !config.entity?.startsWith('sensor.')) {
       throw new Error('Please define a sensor entity');
     }
     
@@ -46,6 +46,9 @@ class DigitalClockCard extends HTMLElement {
       rect_width: config.rect_width || 220,
       rect_height: config.rect_height || 100,
     };
+    
+    // Console logging for debugging
+    console.log("DigitalClockCard config:", this.config);
   }
 
   getCardSize() {
@@ -84,7 +87,6 @@ class DigitalClockCard extends HTMLElement {
     // Get format preference from config
     let use24hFormat = this.config.use_24h_format;
     
-    
     // Calculate the current time from time entity
     let time = new Date();
     if (timeStr) {
@@ -100,6 +102,10 @@ class DigitalClockCard extends HTMLElement {
     let marginDIV = this.config.margin_div;
     let alignItems = this.config.align_items;
     let justifyContent = this.config.justify_content;
+    
+    // Print values for debugging
+    console.log("Layout config - justify-content:", justifyContent);
+    console.log("Layout config - align-items:", alignItems);
     
     // Color configuration
     let backgroundColor = this.config.background_color;   
@@ -267,9 +273,9 @@ class DigitalClockCard extends HTMLElement {
       timeDisplay = `${hours}:${minutes} ${ampm}`;
     }
     
-    // Generate and return the SVG clock visualization
+    // Generate and return the SVG clock visualization with explicit styling
     return `
-      <div style="display:flex; align-items: ${alignItems}; justify-content: ${justifyContent}; margin: ${marginDIV};">
+      <div style="display: flex; align-items: ${alignItems}; justify-content: ${justifyContent}; margin: ${marginDIV}; width: 100%; height: 100%;">
         <svg viewBox="0 0 300 120" width="${widthSVG}" height="${heightSVG}" xmlns="http://www.w3.org/2000/svg">
           <!-- Background rectangle -->
           <rect x="${rectX}" y="${rectY}" width="${rectWidth}" height="${rectHeight}" fill="${backgroundColor}" rx="5" ry="5" />
@@ -295,6 +301,12 @@ class DigitalClockCard extends HTMLElement {
     if (!this.content) {
       this.content = document.createElement('div');
       this.content.className = 'card-content';
+      // Make the content div fill its container
+      this.content.style.width = '100%';
+      this.content.style.height = '100%';
+      // Ensure the parent card has display flex
+      this.style.display = 'flex';
+      this.style.flexDirection = 'column';
       this.shadowRoot.appendChild(this.content);
     }
     
@@ -306,237 +318,247 @@ customElements.define('digital-clock-card', DigitalClockCard);
 
 // Editor for the card
 class DigitalClockCardEditor extends HTMLElement {
+  constructor() {
+    super();
+    this._config = {};
+    this._renderContent();
+  }
+
   setConfig(config) {
-    this.config = config;
-    this._hass = document.querySelector("home-assistant").hass;
+    this._config = { ...config };
+    this._hass = document.querySelector("home-assistant")?.hass;
+    this._renderContent();
   }
 
-  get _entity() {
-    return this.config.entity || '';
-  }
-
-  get _name() {
-    return this.config.name || '';
-  }
-
-  get _use_24h_format() {
-    return this.config.use_24h_format !== undefined ? this.config.use_24h_format : true;
-  }
-
-  get _background_color() {
-    return this.config.background_color || 'transparent';
-  }
-
-  get _digit_color() {
-    return this.config.digit_color || 'white';
-  }
-
-  get _dimmed_color() {
-    return this.config.dimmed_color || 'none';
-  }
-
-  get _text_color() {
-    return this.config.text_color || 'white';
-  }
-  
-  get _width_svg() {
-    return this.config.width_svg || '100%';
-  }
-  
-  get _height_svg() {
-    return this.config.height_svg || '120';
-  }
-  
-  get _segment_thickness() {
-    return this.config.segment_thickness || 8;
-  }
-  
-  get _digit_width() {
-    return this.config.digit_width || 40;
-  }
-  
-  get _digit_height() {
-    return this.config.digit_height || 75;
-  }
-  
-  get _digit_spacing() {
-    return this.config.digit_spacing || 10;
-  }
-  
-  get _align_items() {
-    return this.config.align_items || 'center';
-  }
-  
-  get _justify_content() {
-    return this.config.justify_content || 'center';
-  }
-  
-  get _clock_center_x() {
-    return this.config.clock_center_x || 150;
-  }
-  
-  get _clock_center_y() {
-    return this.config.clock_center_y || 85;
-  }
-  
-  get _rect_x() {
-    return this.config.rect_x || 40;
-  }
-  
-  get _rect_y() {
-    return this.config.rect_y || 10;
-  }
-  
-  get _rect_width() {
-    return this.config.rect_width || 220;
-  }
-  
-  get _rect_height() {
-    return this.config.rect_height || 100;
-  }
-  
-  get _margin_div() {
-    return this.config.margin_div || 0;
-  }
-
-  render() {
-    if (!this.rendered) {
-      this.rendered = true;
-      this.innerHTML = `
-        <ha-form
-          .schema=${[
-            {
-              name: "entity",
-              selector: { entity: { domain: ["sensor"] } }
-            },
-            {
-              name: "name",
-              selector: { text: {} }
-            },
-            {
-              name: "use_24h_format",
-              selector: { boolean: {} }
-            },
-            {
-              name: "background_color",
-              selector: { color_rgb: {} }
-            },
-            {
-              name: "digit_color",
-              selector: { color_rgb: {} }
-            },
-            {
-              name: "dimmed_color",
-              selector: { color_rgb: {} }
-            },
-            {
-              name: "text_color",
-              selector: { color_rgb: {} }
-            },
-            {
-              name: "width_svg",
-              selector: { text: {} }
-            },
-            {
-              name: "height_svg",
-              selector: { number: { min: 50, max: 500, step: 1 } }
-            },
-            {
-              name: "segment_thickness",
-              selector: { number: { min: 1, max: 20, step: 1 } }
-            },
-            {
-              name: "digit_width",
-              selector: { number: { min: 10, max: 100, step: 1 } }
-            },
-            {
-              name: "digit_height",
-              selector: { number: { min: 20, max: 200, step: 1 } }
-            },
-            {
-              name: "digit_spacing",
-              selector: { number: { min: 0, max: 50, step: 1 } }
-            },
-            {
-              name: "align_items",
-              selector: { select: {
-                options: [
-                  { value: "flex-start", label: "Start" },
-                  { value: "center", label: "Center" },
-                  { value: "flex-end", label: "End" },
-                  { value: "stretch", label: "Stretch" }
-                ]
-              }}
-            },
-            {
-              name: "justify_content",
-              selector: { select: {
-                options: [
-                  { value: "flex-start", label: "Start" },
-                  { value: "center", label: "Center" },
-                  { value: "flex-end", label: "End" },
-                  { value: "space-between", label: "Space Between" },
-                  { value: "space-around", label: "Space Around" },
-                  { value: "space-evenly", label: "Space Evenly" }
-                ]
-              }}
-            },
-            {
-              name: "margin_div",
-              selector: { text: {} }
-            },
-            {
-              name: "clock_center_x",
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            },
-            {
-              name: "clock_center_y", 
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            },
-            {
-              name: "rect_x",
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            },
-            {
-              name: "rect_y",
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            },
-            {
-              name: "rect_width",
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            },
-            {
-              name: "rect_height",
-              selector: { number: { min: 0, max: 300, step: 1 } }
-            }
-          ]}
-          .data=${this.config}
-          @value-changed=${this._valueChanged}
-        ></ha-form>
-      `;
-    }
+  _renderContent() {
+    this.innerHTML = `
+      <style>
+        .option {
+          padding: 4px 0px;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .option .title {
+          padding-right: 10px;
+        }
+      </style>
+      <div class="options">
+        <div class="option">
+          <div class="title">Entity:</div>
+          <div class="value">
+            <ha-entity-picker
+              .hass=${this._hass}
+              .value=${this._config.entity}
+              .configValue=${"entity"}
+              .includeDomains=${["sensor"]}
+              @change=${this._valueChanged}
+              allow-custom-entity
+            ></ha-entity-picker>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Name:</div>
+          <div class="value">
+            <ha-textfield
+              .value=${this._config.name || ""}
+              .configValue=${"name"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Use 24h Format:</div>
+          <div class="value">
+            <ha-switch
+              .checked=${this._config.use_24h_format !== false}
+              .configValue=${"use_24h_format"}
+              @change=${this._valueChanged}
+            ></ha-switch>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Background Color:</div>
+          <div class="value">
+            <ha-color-picker
+              .value=${this._config.background_color || "transparent"}
+              .configValue=${"background_color"}
+              @value-changed=${this._valueChanged}
+            ></ha-color-picker>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Digit Color:</div>
+          <div class="value">
+            <ha-color-picker
+              .value=${this._config.digit_color || "white"}
+              .configValue=${"digit_color"}
+              @value-changed=${this._valueChanged}
+            ></ha-color-picker>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Dimmed Color:</div>
+          <div class="value">
+            <ha-color-picker
+              .value=${this._config.dimmed_color || "none"}
+              .configValue=${"dimmed_color"}
+              @value-changed=${this._valueChanged}
+            ></ha-color-picker>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Justify Content:</div>
+          <div class="value">
+            <ha-select
+              .value=${this._config.justify_content || "center"}
+              .configValue=${"justify_content"}
+              @selected=${this._valueChanged}
+              @closed=${(e) => e.stopPropagation()}
+            >
+              <ha-list-item value="flex-start">Start</ha-list-item>
+              <ha-list-item value="center">Center</ha-list-item>
+              <ha-list-item value="flex-end">End</ha-list-item>
+              <ha-list-item value="space-between">Space Between</ha-list-item>
+              <ha-list-item value="space-around">Space Around</ha-list-item>
+              <ha-list-item value="space-evenly">Space Evenly</ha-list-item>
+            </ha-select>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Align Items:</div>
+          <div class="value">
+            <ha-select
+              .value=${this._config.align_items || "center"}
+              .configValue=${"align_items"}
+              @selected=${this._valueChanged}
+              @closed=${(e) => e.stopPropagation()}
+            >
+              <ha-list-item value="flex-start">Start</ha-list-item>
+              <ha-list-item value="center">Center</ha-list-item>
+              <ha-list-item value="flex-end">End</ha-list-item>
+              <ha-list-item value="stretch">Stretch</ha-list-item>
+            </ha-select>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Width SVG:</div>
+          <div class="value">
+            <ha-textfield
+              .value=${this._config.width_svg || "100%"}
+              .configValue=${"width_svg"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Height SVG:</div>
+          <div class="value">
+            <ha-textfield
+              type="number"
+              .value=${this._config.height_svg || "120"}
+              .configValue=${"height_svg"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Segment Thickness:</div>
+          <div class="value">
+            <ha-textfield
+              type="number"
+              .value=${this._config.segment_thickness || "8"}
+              .configValue=${"segment_thickness"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Digit Width:</div>
+          <div class="value">
+            <ha-textfield
+              type="number"
+              .value=${this._config.digit_width || "40"}
+              .configValue=${"digit_width"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Digit Height:</div>
+          <div class="value">
+            <ha-textfield
+              type="number"
+              .value=${this._config.digit_height || "75"}
+              .configValue=${"digit_height"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Digit Spacing:</div>
+          <div class="value">
+            <ha-textfield
+              type="number"
+              .value=${this._config.digit_spacing || "10"}
+              .configValue=${"digit_spacing"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+        
+        <div class="option">
+          <div class="title">Margin:</div>
+          <div class="value">
+            <ha-textfield
+              .value=${this._config.margin_div || "0"}
+              .configValue=${"margin_div"}
+              @input=${this._valueChanged}
+            ></ha-textfield>
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   _valueChanged(ev) {
-    if (!this.config || !this._hass) return;
+    if (!this._config || !this._hass) return;
     
-    const config = {
-      ...this.config,
-      ...ev.detail.value
-    };
+    const target = ev.target;
+    const value = target.value;
+    const configValue = target.configValue;
     
-    const event = new Event("config-changed", {
+    if (configValue) {
+      if (target.type === 'checkbox') {
+        this._config = { ...this._config, [configValue]: target.checked };
+      } else {
+        this._config = { ...this._config, [configValue]: value };
+      }
+    }
+    
+    // Log for debugging
+    console.log(`Editor update: ${configValue} = ${value}`);
+    
+    // Dispatch the config-changed event
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: this._config },
       bubbles: true,
       composed: true
-    });
-    
-    event.detail = { config };
-    this.dispatchEvent(event);
-  }
-
-  connectedCallback() {
-    this.rendered = false;
-    this.render();
+    }));
   }
 }
 
