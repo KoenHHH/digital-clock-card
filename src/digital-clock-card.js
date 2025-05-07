@@ -52,11 +52,11 @@ class DigitalClockCard extends HTMLElement {
       use_24h_format: config.use_24h_format !== undefined ? config.use_24h_format : true,
       
       // Layout configuration
-      width_svg: config.width_svg || '100%',
+      width_svg: config.width_svg || 'auto',
       height_svg: config.height_svg || '120',
       margin_div: config.margin_div || '0',
-      align_items: config.align_items || 'center',
       justify_content: config.justify_content || 'center',
+      dimmed_opacity: config.dimmed_opacity !== undefined ? config.dimmed_opacity : 0,
       
       // Color configuration
       background_color: config.background_color || 'transparent',
@@ -81,13 +81,25 @@ class DigitalClockCard extends HTMLElement {
       rect_height: config.rect_height || 100,
     };
     
-    // If dimmed_color is set to 'none', use a semi-transparent version of the digit color
+          // Handle dimmed_color with opacity parameter
     if (this.config.dimmed_color === 'none') {
-      // Parse the digit color to make it semi-transparent
+      const opacity = config.dimmed_opacity !== undefined ? config.dimmed_opacity : 0;
+      
+      // Convert opacity percentage (0-100) to decimal (0-1)
+      const opacityDecimal = opacity / 100;
+      
+      // Create a color with the specified opacity
       if (this.config.digit_color.startsWith('#')) {
-        this.config.dimmed_color = this.config.digit_color + '4D';  // Add 30% opacity
+        // For hex colors, convert to rgba
+        const r = parseInt(this.config.digit_color.slice(1, 3), 16);
+        const g = parseInt(this.config.digit_color.slice(3, 5), 16);
+        const b = parseInt(this.config.digit_color.slice(5, 7), 16);
+        this.config.dimmed_color = `rgba(${r}, ${g}, ${b}, ${opacityDecimal})`;
+      } else if (this.config.digit_color === 'white') {
+        this.config.dimmed_color = `rgba(255, 255, 255, ${opacityDecimal})`;
       } else {
-        this.config.dimmed_color = 'rgba(255,255,255,0.3)';
+        // Default fallback
+        this.config.dimmed_color = `rgba(255, 255, 255, ${opacityDecimal})`;
       }
     }
     
@@ -110,8 +122,9 @@ class DigitalClockCard extends HTMLElement {
       use_24h_format: true,
       background_color: "transparent",
       digit_color: "white",
-      dimmed_color: "rgba(255,255,255,0.3)",
-      width_svg: "100%",
+      dimmed_color: "none",
+      dimmed_opacity: 0,
+      width_svg: "auto",
       height_svg: "120",
       justify_content: "center",
       margin_div: "0"
@@ -162,7 +175,6 @@ class DigitalClockCard extends HTMLElement {
     let widthSVG = this.config.width_svg;
     let heightSVG = this.config.height_svg;
     let justifyContent = this.config.justify_content;
-    let alignItems = this.config.align_items;
     let marginDiv = this.config.margin_div;
     let backgroundColor = this.config.background_color;
     let digitColor = this.config.digit_color;
@@ -261,7 +273,6 @@ class DigitalClockCard extends HTMLElement {
     const containerStyle = `
       display: flex; 
       justify-content: ${justifyContent}; 
-      align-items: ${alignItems}; 
       margin: ${marginDiv};
       width: 100%;
     `;
@@ -485,7 +496,7 @@ class DigitalClockCardEditor extends HTMLElement {
     });
     const dimmedRow = createFormRow('Dimmed Color:', dimmedColorInput);
     const dimmedNoneLabel = document.createElement('label');
-    dimmedNoneLabel.innerText = 'Auto (30% opacity)';
+    dimmedNoneLabel.innerText = 'Custom Opacity';
     dimmedNoneLabel.style.marginLeft = '10px';
     dimmedNoneLabel.style.flex = '0';
     dimmedRow.appendChild(dimmedNoneLabel);
@@ -507,18 +518,43 @@ class DigitalClockCardEditor extends HTMLElement {
     });
     form.appendChild(createFormRow('Justify Content:', justifyContentSelect));
     
-    // Align items
-    const alignItemsSelect = document.createElement('select');
-    alignItemsSelect.innerHTML = `
-      <option value="flex-start" ${this._config.align_items === 'flex-start' ? 'selected' : ''}>Start</option>
-      <option value="center" ${this._config.align_items === 'center' || !this._config.align_items ? 'selected' : ''}>Center</option>
-      <option value="flex-end" ${this._config.align_items === 'flex-end' ? 'selected' : ''}>End</option>
-      <option value="stretch" ${this._config.align_items === 'stretch' ? 'selected' : ''}>Stretch</option>
-    `;
-    alignItemsSelect.addEventListener('change', (e) => {
-      this._updateConfig({ align_items: e.target.value });
+    // Dimmed opacity slider
+    const dimmedOpacityInput = document.createElement('input');
+    dimmedOpacityInput.type = 'range';
+    dimmedOpacityInput.min = '0';
+    dimmedOpacityInput.max = '100';
+    dimmedOpacityInput.value = this._config.dimmed_opacity !== undefined ? this._config.dimmed_opacity : 0;
+    
+    // Add label to show current opacity value
+    const opacityValueLabel = document.createElement('span');
+    opacityValueLabel.innerText = `${dimmedOpacityInput.value}%`;
+    opacityValueLabel.style.marginLeft = '10px';
+    opacityValueLabel.style.width = '40px';
+    opacityValueLabel.style.display = 'inline-block';
+    
+    dimmedOpacityInput.addEventListener('input', (e) => {
+      opacityValueLabel.innerText = `${e.target.value}%`;
+      this._updateConfig({ dimmed_opacity: parseInt(e.target.value) });
     });
-    form.appendChild(createFormRow('Align Items:', alignItemsSelect));
+    
+    const opacityRow = createFormRow('Dimmed Opacity:', dimmedOpacityInput);
+    opacityRow.appendChild(opacityValueLabel);
+    
+    // Only show opacity slider if "none" option is selected for dimmed color
+    if (this._config.dimmed_color === 'none' || dimmedNoneCheck.checked) {
+      form.appendChild(opacityRow);
+    }
+    
+    // Update dimmed opacity row visibility when the "none" checkbox changes
+    dimmedNoneCheck.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        form.insertBefore(opacityRow, justifyContentSelect.parentNode);
+      } else {
+        if (opacityRow.parentNode === form) {
+          form.removeChild(opacityRow);
+        }
+      }
+    });
     
     // Width SVG
     const widthInput = document.createElement('input');
