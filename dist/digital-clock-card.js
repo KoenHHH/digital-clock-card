@@ -42,7 +42,7 @@ class DigitalClockCard extends HTMLElement {
       
       // Background rectangle dimensions
       rect_x: config.rect_x || 40,
-      rect_y: config.rect_y || 0,
+      rect_y: config.rect_y || 10,
       rect_width: config.rect_width || 220,
       rect_height: config.rect_height || 100,
     };
@@ -384,7 +384,7 @@ class DigitalClockCardEditor extends HTMLElement {
   }
   
   get _rect_y() {
-    return this.config.rect_y || 20;
+    return this.config.rect_y || 10;
   }
   
   get _rect_width() {
