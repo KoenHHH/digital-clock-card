@@ -52,7 +52,7 @@ class DigitalClockCard extends HTMLElement {
       use_24h_format: config.use_24h_format !== undefined ? config.use_24h_format : true,
       
       // Layout configuration
-      width_svg: config.width_svg || '50%', // Changed from 'auto' to '50%'
+      width_svg: config.width_svg || '50%',
       height_svg: config.height_svg || '120',
       margin_div: config.margin_div || '0',
       justify_content: config.justify_content || 'center',
@@ -134,7 +134,7 @@ class DigitalClockCard extends HTMLElement {
       digit_color: "white",
       dimmed_color: "none",
       dimmed_opacity: 0,
-      width_svg: "50%", // Changed from 'auto' to '50%'
+      width_svg: "50%",
       height_svg: "120",
       justify_content: "center",
       margin_div: "0",
@@ -142,7 +142,7 @@ class DigitalClockCard extends HTMLElement {
     };
   }
 
-  static getConfigElement() {
+  static get configElement() {
     return document.createElement("digital-clock-card-editor");
   }
 
@@ -688,7 +688,7 @@ class DigitalClockCardEditor extends HTMLElement {
       this._updateConfig({ segment_thickness: e.target.value });
     });
     advancedSection.appendChild(createFormRow('Segment Thickness:', thicknessInput));
-
+    
     // Digit width
     const digitWidthInput = document.createElement('input');
     digitWidthInput.type = 'number';
@@ -697,7 +697,7 @@ class DigitalClockCardEditor extends HTMLElement {
       this._updateConfig({ digit_width: e.target.value });
     });
     advancedSection.appendChild(createFormRow('Digit Width:', digitWidthInput));
-    
+
     // Digit height
     const digitHeightInput = document.createElement('input');
     digitHeightInput.type = 'number';
@@ -716,60 +716,12 @@ class DigitalClockCardEditor extends HTMLElement {
     });
     advancedSection.appendChild(createFormRow('Digit Spacing:', digitSpacingInput));
     
-    // Rectangle dimensions
-    const rectXInput = document.createElement('input');
-    rectXInput.type = 'number';
-    rectXInput.value = this._config.rect_x || '40';
-    rectXInput.addEventListener('change', (e) => {
-      this._updateConfig({ rect_x: e.target.value });
-    });
-    advancedSection.appendChild(createFormRow('Rectangle X:', rectXInput));
-    
-    const rectYInput = document.createElement('input');
-    rectYInput.type = 'number';
-    rectYInput.value = this._config.rect_y || '10';
-    rectYInput.addEventListener('change', (e) => {
-      this._updateConfig({ rect_y: e.target.value });
-    });
-    advancedSection.appendChild(createFormRow('Rectangle Y:', rectYInput));
-    
-    const rectWidthInput = document.createElement('input');
-    rectWidthInput.type = 'number';
-    rectWidthInput.value = this._config.rect_width || '220';
-    rectWidthInput.addEventListener('change', (e) => {
-      this._updateConfig({ rect_width: e.target.value });
-    });
-    advancedSection.appendChild(createFormRow('Rectangle Width:', rectWidthInput));
-    
-    const rectHeightInput = document.createElement('input');
-    rectHeightInput.type = 'number';
-    rectHeightInput.value = this._config.rect_height || '100';
-    rectHeightInput.addEventListener('change', (e) => {
-      this._updateConfig({ rect_height: e.target.value });
-    });
-    advancedSection.appendChild(createFormRow('Rectangle Height:', rectHeightInput));
-    
     // Add the form to the editor
     this.appendChild(form);
-    
-    // Initialize the preview with the current config
-    if (this._config && this._hass) {
-      this._previewCard.setConfig(this._config);
-      this._previewCard.hass = this._hass;
-    }
   }
-  
-  _updateConfig(config) {
-    // Update the current config with the new values
-    this._config = { ...this._config, ...config };
-    
-    // Update the preview card with the new config
-    if (this._previewCard) {
-      this._previewCard.setConfig(this._config);
-      if (this._hass) {
-        this._previewCard.hass = this._hass;
-      }
-    }
+
+  _updateConfig(configUpdate) {
+    this._config = { ...this._config, ...configUpdate };
     
     // Dispatch the config-changed event
     const event = new CustomEvent('config-changed', {
@@ -778,17 +730,35 @@ class DigitalClockCardEditor extends HTMLElement {
       composed: true
     });
     this.dispatchEvent(event);
+    
+    // Update preview card
+    if (this._previewCard) {
+      this._previewCard.setConfig(this._config);
+      if (this._hass) {
+        this._previewCard.hass = this._hass;
+      }
+    }
   }
-  
+
   set hass(hass) {
     this._hass = hass;
     
-    // Update the preview card with the hass data
     if (this._previewCard) {
       this._previewCard.hass = hass;
+    }
+    
+    if (this._card) {
+      this._card.hass = hass;
     }
   }
 }
 
-// Define the editor element
-customElements.define('digital-clock-card-editor', DigitalClockCardEditor);  
+customElements.define('digital-clock-card-editor', DigitalClockCardEditor);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+  type: 'digital-clock-card',
+  name: 'Digital Clock Card',
+  description: 'A customizable digital clock visualization',
+  preview: true,
+});
