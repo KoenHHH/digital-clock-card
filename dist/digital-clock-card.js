@@ -62,7 +62,7 @@ class DigitalClockCard extends HTMLElement {
       width_svg: "100%",
       height_svg: "120",
       justify_content: "center",
-      margin: "0"
+      margin_div: "0"
     };
   }
 
@@ -396,7 +396,7 @@ class DigitalClockCardEditor extends HTMLElement {
   }
   
   get _margin_div() {
-    return this.config.margin_div || '0';
+    return this.config.margin_div || 0;
   }
 
   render() {
